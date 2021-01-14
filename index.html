@@ -16,6 +16,10 @@
         color: rgb(0, 0, 0);
       }
 
+      #player-2 {
+        display: none;
+      }
+
       .game-area {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -24,24 +28,13 @@
         margin:auto;
       }
 
-      .card-area {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        margin-inline: 10px;
-      }
-
-      .hidden {
+      /*.hidden {
         visibility: hidden;
-      }
+      }*/
 
       .button-area {
         display: grid;
-        grid-column: 1fr;
-      }
-
-      .hit-check-button {
-        display: grid;
-        grid-template: 1fr 1fr;
+        grid-column: 1fr 1fr 1fr;
       }
       
     </style>
@@ -60,30 +53,20 @@
 
       <div class="character">
         <div class="title">Dealer</div>
-        <div class="card-area">
-          <div id="dealer-0" class="card">Card</div>
-          <div id="dealer-1" class="card"></div>
-        </div>
+        <div class="card-area" class="card" id="dealer-card-area"></div>
       </div>
 
       <div class="character">
         <div class="title">Player</div>
-        <div class="card-area">
-          <div id="player-0" class="card"></div>
-          <div id="player-1" class="card"></div>
-          <div id="player-2" class="card" class="hidden"></div> <!--how do you hid css, the cards in the begining?-->
-          <div id="player-3" class="card" class="hidden"></div>
-        </div>
+        <div class="card-area" id="player-card-area"></div>
       </div>
 
     <div>Status: <span id="statusId"></span></div>
 
     <div class="button-area">
-      <button onclick="startGame()" class="hidden" id="dealCardsId">Deal cards</button>
-      <div class="hit-check-button">
-        <button onclick="hitOrCheck()" id="hitPlayerId">Hit</button>
-        <button onclick="check()" id="checkPlayerId">Check</button>
-      </div>
+        <button onclick="startGame()" id="dealCardsId">Deal cards</button>
+        <button onclick="hitOrCheck('hit')" id="hitPlayerId">Hit</button>
+        <button onclick="hitOrCheck('check')" id="checkPlayerId">Check</button>
     </div>
     
 
@@ -105,30 +88,51 @@
     var deck
     var dealerCards
     var playerCards
+
+    var dealDealer = null
+    var dealPlayer = null
     
     var gameActive = true
 
-    var statusId = document.getElementById("statusId").innerHTML
+    var statusId = document.getElementById("statusId")
+
+    var dealerCardAreaEle = document.getElementById("dealer-card-area")
+    var playerCardAreaEle = document.getElementById("player-card-area")
 
 
+    function startGame () {
+      //toggleButtons()
+
+      var newDeck = buildDeck()
+      var shuffledNewDeck = shuffle(newDeck)
+      deck = shuffledNewDeck
+
+      dealerCards = get2Cards()
+      playerCards = get2Cards()
+
+      dealerCards.forEach(function (card) {
+        var newDiv = document.createElement("div")
+      
+        newDiv.innerHTML = card.value + " of " + card.suit
+        newDiv.className += "card"
+        dealerCardAreaEle.appendChild(newDiv)
+      })
+
+      playerCards.forEach(function (card) {
+        var newDiv = document.createElement("div")
+      
+        newDiv.innerHTML = card.value + " of " + card.suit
+        newDiv.className += "card"
+        playerCardAreaEle.appendChild(newDiv)
+      })
+
+      statusId.innerHTML = "Hit or Check?"
+    }
 
     function updateHTML(message) {
       document.getElementById("statusId").innerHTML = message
       document.getElementById("dealCardsId").classList.toggle("hidden")
     }
-
-
-
-    function toggleButtons () {
-      document.getElementById("dealCardsId").classList.toggle("hidden")
-      document.getElementById("hitPlayerId").classList.toggle("hidden")
-      document.getElementById("checkPlayerId").classList.toggle("hidden")
-      console.log("toggle")
-    }
-
-
-
-
 
     function buildDeck () {
       var newDeck = []
@@ -170,52 +174,58 @@
       return deck
     }
 
-
-
-
     function get2Cards () {
       var card1 = deck.shift()
       var card2 = deck.shift()
 
       var cards = [card1, card2]
 
+      console.log(cards)
+
       return cards
     }
 
-
-
-
-
-    function displayCards () {
-      document.getElementById("statusId").innerHTML = "Hit or Check?"
-
-      var dealerCard0 = dealerCards[0]
-      //document.getElementById("dealer-0").innerHTML = dealerCard0.value + " of " + dealerCard0.suit
-
-      var dealerCard1 = dealerCards[1]
-      document.getElementById("dealer-1").innerHTML = dealerCard1.value + " of " + dealerCard1.suit
-
-      var playerCard0 = playerCards[0]
-      document.getElementById("player-0").innerHTML = playerCard0.value + " of " + playerCard0.suit
-
-      var playerCard1 = playerCards[1]
-      document.getElementById("player-1").innerHTML = playerCard1.value + " of " + playerCard1.suit
-
-      if (playerCards.length === 3) {
-        var playerCard2 = playerCards[2]
-      document.getElementById("player-2").innerHTML = playerCard2.value + " of " + playerCard2.suit
-      }
+    // function displayCards (card) {
       
-      if (playerCards.length === 4 ) {
-        var playerCard3 = playerCards[3]
-      document.getElementById("player-3").innerHTML = playerCard3.value + " of " + playerCard3.suit
+    //   if (dealerCards.length === 2 && dealDealer) {
+    //     console.log("dis")
+    //     var newDiv = document.createElement("div")
+      
+    //     newDiv.innerHTML = card.value + " of " + card.suit
+    //     newDiv.className += "card"
+    //     dealerCardAreaEle.appendChild(newDiv)
+
+    //   } else if (playerCards.length > 2) {
+    //     var newDiv = document.createElement("div")
+      
+    //     newDiv.innerHTML = card.value + " of " + card.suit
+    //     newDiv.className += "card"
+    //     cardAreaEle.appendChild(newDiv)
+
+    //     console.log("if-dis")
+    //   } else {
+    //     console.log("length is not greater than 2 nor equal to 2")
+    //   }
+
+    // }
+
+    function hitOrCheck (type) {
+      if (type === "hit") {  
+        var newCard = deck.shift()
+        playerCards.push(newCard)
+
+        var newDiv = document.createElement("div")
+      
+        newDiv.innerHTML = newCard.value + " of " + newCard.suit
+        newDiv.className += "card"
+        playerCardAreaEle.appendChild(newDiv)
+        
+        
+      } else {
+        declareWinner()
+        //toggleButtons()
       }
-
     }
-
-
-
-
 
     function declareWinner () {
       var dealerTotal = 0
@@ -240,40 +250,54 @@
 
       updateHTML(message)
     }
+    
+    //toggleButtons()
 
-    function hitOrCheck () {
-      // if (document.getElementById("hitPlayerId").onclick) {  // What is wrong with this conditional??
-        var newCard = deck.shift()
-        playerCards.push(newCard)
 
-        displayCards()
-        
-      } //else {
-    //     declareWinner()
-    //   }
+
+    // code archive
+
+    // function toggleButtons () {
+    //   document.getElementById("dealCardsId").classList.toggle("hidden")
+    //   document.getElementById("hitPlayerId").classList.toggle("hidden")
+    //   document.getElementById("checkPlayerId").classList.toggle("hidden")
+    //   console.log("toggle")
     // }
 
-    function check () {
-      toggleButtons()  // why does the deal cards button not toggle back on after clicking check?
-      declareWinner()
-    }
+
+
+      // var dealerCard0 = dealerCards[0]
+      // //document.getElementById("dealer-0").innerHTML = dealerCard0.value + " of " + dealerCard0.suit
+
+      // var dealerCard1 = dealerCards[1]
+      // document.getElementById("dealer-1").innerHTML = dealerCard1.value + " of " + dealerCard1.suit
+
+      // var playerCard0 = playerCards[0]
+      // document.getElementById("player-0").innerHTML = playerCard0.value + " of " + playerCard0.suit
+
+      // var playerCard1 = playerCards[1]
+      // document.getElementById("player-1").innerHTML = playerCard1.value + " of " + playerCard1.suit
+
+      // if (playerCards.length === 3) {
+      //   var playerCard2 = playerCards[2]
+      // document.getElementById("player-2").innerHTML = playerCard2.value + " of " + playerCard2.suit
+      // }
+      
+      // if (playerCards.length === 4 ) {
+      //   var playerCard3 = playerCards[3]
+      // document.getElementById("player-3").innerHTML = playerCard3.value + " of " + playerCard3.suit
+      // }
 
 
 
-    function startGame () {
-      toggleButtons()
 
-      var newDeck = buildDeck()
-      var shuffledNewDeck = shuffle(newDeck)
-      deck = shuffledNewDeck
 
-      dealerCards = get2Cards()
-      playerCards = get2Cards()
-      displayCards()
-      //setTimeout(declareWinner, 2000)
-    }
 
-    toggleButtons()
+
 
   </script>
 </html>
+
+
+
+
