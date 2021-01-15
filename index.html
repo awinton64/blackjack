@@ -219,6 +219,8 @@
         newDiv.innerHTML = newCard.value + " of " + newCard.suit
         newDiv.className += "card"
         playerCardAreaEle.appendChild(newDiv)
+
+        checkForBust()
         
         
       } else {
@@ -227,7 +229,7 @@
       }
     }
 
-    function declareWinner () {
+    function checkForBust () {
       var dealerTotal = 0
       var playerTotal = 0
 
@@ -237,6 +239,54 @@
 
       playerCards.forEach((card) => {
         playerTotal = playerTotal + card.value
+      })
+
+      var message
+      if (playerTotal > 21) {
+        declareWinner()
+      } else {
+        null
+      }
+    }
+
+    function dealerFinishes () {
+      var dealerTotal = 0
+
+      dealerCards.forEach((card) => {
+        dealerTotal = dealerTotal + card.value
+      })
+
+      if (dealerTotal < 17) {
+        var newCard = deck.shift()
+        dealerCards.push(newCard)
+
+        var newDiv = document.createElement("div")
+      
+        newDiv.innerHTML = newCard.value + " of " + newCard.suit
+        newDiv.className += "card"
+        dealerCardAreaEle.appendChild(newDiv)
+
+        dealerFinishes()
+      } 
+
+
+      
+    }
+
+    function declareWinner () {
+      var dealerTotal = 0
+      var playerTotal = 0
+
+      playerCards.forEach((card) => {
+        playerTotal = playerTotal + card.value
+      })
+
+      if (!(playerTotal>21)) {
+        dealerFinishes()
+      }
+
+      dealerCards.forEach((card) => {
+        dealerTotal = dealerTotal + card.value
       })
 
       var message
