@@ -65,8 +65,8 @@
 
     <div class="button-area">
         <button onclick="startGame()" id="dealCardsId">Deal cards</button>
-        <button onclick="hitOrCheck('hit')" id="hitPlayerId">Hit</button>
-        <button onclick="hitOrCheck('check')" id="checkPlayerId">Check</button>
+        <button onclick="hitOrStick('hit')" id="hitPlayerId">Hit</button>
+        <button onclick="hitOrStick('stick')" id="checkPlayerId">Stick</button>
     </div>
     
 
@@ -88,6 +88,8 @@
     var deck
     var dealerCards
     var playerCards
+    var aceValues = [1, 11]
+    var isAce = null
 
     var dealDealer = null
     var dealPlayer = null
@@ -104,40 +106,34 @@
       //toggleButtons()
 
       var newDeck = buildDeck()
+
+      //findAce()
+
       var shuffledNewDeck = shuffle(newDeck)
       deck = shuffledNewDeck
 
       dealerCards = get2Cards()
       playerCards = get2Cards()
 
-      dealerCards.forEach(function (card) {
-        var newDiv = document.createElement("div")
-      
-        newDiv.innerHTML = card.value + " of " + card.suit
-        newDiv.className += "card"
-        dealerCardAreaEle.appendChild(newDiv)
-      })
+      dealDealerCard(dealerCards)
+      dealPlayerCard(playerCards)
 
-      playerCards.forEach(function (card) {
-        var newDiv = document.createElement("div")
-      
-        newDiv.innerHTML = card.value + " of " + card.suit
-        newDiv.className += "card"
-        playerCardAreaEle.appendChild(newDiv)
-      })
+      console.log(dealerCards)
 
       statusId.innerHTML = "Hit or Check?"
     }
+
 
     function updateHTML(message) {
       document.getElementById("statusId").innerHTML = message
       document.getElementById("dealCardsId").classList.toggle("hidden")
     }
 
+
     function buildDeck () {
       var newDeck = []
       var suits = ['heart', 'spade', 'diamond', 'club']
-      var values = [1,2,3,4,5,6,7,8,9,10,11,12,13]
+      var values = [[1,11],2,3,4,5,6,7,8,9,10,10,10,10]
 
       suits.forEach((suit) => {
         values.forEach((value) => {
@@ -151,7 +147,7 @@
 
         })
       })
-
+    
       return newDeck
     }
     
@@ -180,45 +176,55 @@
 
       var cards = [card1, card2]
 
-      console.log(cards)
-
       return cards
     }
 
-    // function displayCards (card) {
-      
-    //   if (dealerCards.length === 2 && dealDealer) {
-    //     console.log("dis")
-    //     var newDiv = document.createElement("div")
-      
-    //     newDiv.innerHTML = card.value + " of " + card.suit
-    //     newDiv.className += "card"
-    //     dealerCardAreaEle.appendChild(newDiv)
 
-    //   } else if (playerCards.length > 2) {
-    //     var newDiv = document.createElement("div")
-      
-    //     newDiv.innerHTML = card.value + " of " + card.suit
-    //     newDiv.className += "card"
-    //     cardAreaEle.appendChild(newDiv)
+    function dealPlayerCard (playerCards) {
 
-    //     console.log("if-dis")
-    //   } else {
-    //     console.log("length is not greater than 2 nor equal to 2")
-    //   }
+      playerCardAreaEle.innerHTML = ""
 
-    // }
+      playerCards.forEach((card) => {
+        var newDiv = document.createElement("div")
 
-    function hitOrCheck (type) {
+        if (Array.isArray(card.value) && card.value.length === aceValues.length && card.value.every((val, idx) => val === aceValues[idx])) { // Can you explain this line of the conditional? is it a func?
+          newDiv.innerHTML =  "Ace of " + card.suit
+          newDiv.className += "card"
+          playerCardAreaEle.appendChild(newDiv)
+        } else {
+          newDiv.innerHTML = card.value + " of " + card.suit
+          newDiv.className += "card"
+          playerCardAreaEle.appendChild(newDiv)
+        }
+      })
+    }
+
+    function dealDealerCard (dealerCards) {
+
+      dealerCardAreaEle.innerHTML = ""
+
+      dealerCards.forEach((card) => {
+        var newDiv = document.createElement("div")
+
+        if (Array.isArray(card.value) && card.value.length === aceValues.length && card.value.every((val, idx) => val === aceValues[idx])) { // Can you explain this line of the conditional? is it a func?
+          newDiv.innerHTML =  "Ace of " + card.suit
+          newDiv.className += "card"
+          dealerCardAreaEle.appendChild(newDiv)
+        } else {
+          newDiv.innerHTML = card.value + " of " + card.suit
+          newDiv.className += "card"
+          dealerCardAreaEle.appendChild(newDiv)
+        }
+      })
+    }
+    
+    
+    function hitOrStick (type) {
       if (type === "hit") {  
         var newCard = deck.shift()
         playerCards.push(newCard)
 
-        var newDiv = document.createElement("div")
-      
-        newDiv.innerHTML = newCard.value + " of " + newCard.suit
-        newDiv.className += "card"
-        playerCardAreaEle.appendChild(newDiv)
+        dealPlayerCard(playerCards)
 
         checkForBust()
         
@@ -249,11 +255,17 @@
       }
     }
 
+
     function dealerFinishes () {
       var dealerTotal = 0
+      var playerTotal = 0
 
       dealerCards.forEach((card) => {
         dealerTotal = dealerTotal + card.value
+      })
+
+      playerCards.forEach((card) => {
+        playerTotal = playerTotal + card.value
       })
 
       if (dealerTotal < 17) {
@@ -267,26 +279,57 @@
         dealerCardAreaEle.appendChild(newDiv)
 
         dealerFinishes()
-      } 
-
-
-      
+      }     
     }
 
     function declareWinner () {
       var dealerTotal = 0
       var playerTotal = 0
 
+      // sum playerCards but exclude any aces.
       playerCards.forEach((card) => {
-        playerTotal = playerTotal + card.value
+        if (Array.isArray(card.value) && card.value.length === aceValues.length && card.value.every((val, idx) => val === aceValues[idx])) {
+          null 
+        } else {
+          playerTotal = playerTotal + card.value
+        }
+      })
+      // with new 'playerCards' total value of non-aces, add the ace(s) to the total of playerTotal
+      playerCards.forEach((card) => {
+        if (Array.isArray(card.value) && card.value.length === aceValues.length && card.value.every((val, idx) => val === aceValues[idx])) {
+          if (playerTotal > 10) {
+            playerTotal = playerTotal + card.value[0]
+          } else {
+            playerTotal = playerTotal + card.value[1]
+          }
+        } else {
+          null
+        }
       })
 
       if (!(playerTotal>21)) {
         dealerFinishes()
       }
 
+      // sum 'dealerCards' but exclude any aces.
       dealerCards.forEach((card) => {
-        dealerTotal = dealerTotal + card.value
+        if (Array.isArray(card.value) && card.value.length === aceValues.length && card.value.every((val, idx) => val === aceValues[idx])) {
+          null 
+        } else {
+          dealerTotal += card.value
+        }
+      })
+      // with new 'dealerCards' total value of non-aces, add the ace(s) to the total of playerTotal
+      dealerCards.forEach((card) => {
+        if (Array.isArray(card.value) && card.value.length === aceValues.length && card.value.every((val, idx) => val === aceValues[idx])) {
+          if (dealerTotal > 10) {
+            dealerTotal += card.value[0]
+          } else {
+            dealerTotal += card.value[1]
+          }
+        } else {
+          null
+        }
       })
 
       var message
@@ -294,18 +337,80 @@
         message = "Cool! Player beats dealer, " + playerTotal + " to " + dealerTotal + "."
       } else if (playerTotal > 21) {
         message = "Bummer. You busted. Dealer won, " + dealerTotal + " to " + playerTotal + "."
+      } else if (playerTotal < 22 && dealerTotal > playerTotal && dealerTotal > 21) {
+        message = "Dealer Busted. Player beats dealer, " + playerTotal + " to " + dealerTotal + "."
       } else {
         message = "Bummer. Dealer won, " + dealerTotal + " to " + playerTotal + "."
       }
 
       updateHTML(message)
     }
-    
-    //toggleButtons()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
     // code archive
+
+    // function checkForAce (card) {
+    //     if (Array.isArray(card.value) &&
+    //         card.value.length === aceValues.length &&
+    //         card.value.every((val, idx) => val === aceValues[idx]) // Can you explain this line of the conditional? is it a func?
+    //     ) {
+    //       console.log("loopWorked");
+    //       return true
+    //     }
+    // }
+
+    // function displayCards (card) {
+      
+    //   if (dealerCards.length === 2 && dealDealer) {
+    //     console.log("dis")
+    //     var newDiv = document.createElement("div")
+      
+    //     newDiv.innerHTML = card.value + " of " + card.suit
+    //     newDiv.className += "card"
+    //     dealerCardAreaEle.appendChild(newDiv)
+
+    //   } else if (playerCards.length > 2) {
+    //     var newDiv = document.createElement("div")
+      
+    //     newDiv.innerHTML = card.value + " of " + card.suit
+    //     newDiv.className += "card"
+    //     cardAreaEle.appendChild(newDiv)
+
+    //     console.log("if-dis")
+    //   } else {
+    //     console.log("length is not greater than 2 nor equal to 2")
+    //   }
+
+    // }
+
+
+
+    // cardsInHand.forEach((card) => {
+    //     if (
+    //       Array.isArray(card.value) &&
+    //       card.value.length === aceValues.length &&
+    //       card.value.every((val, idx) => val === aceValues[idx]) // Can you explain this line of the conditional? is it a func?
+    //     ) {
+
+
+    //       console.log("loopWorked");
+    //     }
+    //   });
+
 
     // function toggleButtons () {
     //   document.getElementById("dealCardsId").classList.toggle("hidden")
