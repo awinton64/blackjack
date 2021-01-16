@@ -28,9 +28,9 @@
         margin:auto;
       }
 
-      /*.hidden {
+      .hidden {
         visibility: hidden;
-      }*/
+      }
 
       .button-area {
         display: grid;
@@ -93,6 +93,8 @@
 
     var dealDealer = null
     var dealPlayer = null
+
+    var dealerFirstCard = null
     
     var gameActive = true
 
@@ -118,15 +120,12 @@
       dealDealerCard(dealerCards)
       dealPlayerCard(playerCards)
 
-      console.log(dealerCards)
-
       statusId.innerHTML = "Hit or Check?"
     }
 
 
     function updateHTML(message) {
       document.getElementById("statusId").innerHTML = message
-      document.getElementById("dealCardsId").classList.toggle("hidden")
     }
 
 
@@ -203,16 +202,32 @@
 
       dealerCardAreaEle.innerHTML = ""
 
+      dealerFirstCard = dealerCards[0]
+
       dealerCards.forEach((card) => {
         var newDiv = document.createElement("div")
+        console.log(dealerCards[0])
 
         if (Array.isArray(card.value) && card.value.length === aceValues.length && card.value.every((val, idx) => val === aceValues[idx])) { // Can you explain this line of the conditional? is it a func?
-          newDiv.innerHTML =  "Ace of " + card.suit
+          
           newDiv.className += "card"
+
+          if (card === dealerFirstCard) {
+            newDiv.id = "dealerCard0"
+          } else {
+            newDiv.innerHTML =  "Ace of " + card.suit
+          }
           dealerCardAreaEle.appendChild(newDiv)
+        
         } else {
-          newDiv.innerHTML = card.value + " of " + card.suit
+
           newDiv.className += "card"
+
+          if (card === dealerFirstCard) {
+            newDiv.id = "dealerCard0"
+          } else {
+            newDiv.innerHTML =  card.value + " of " + card.suit
+          }
           dealerCardAreaEle.appendChild(newDiv)
         }
       })
@@ -306,6 +321,9 @@
           null
         }
       })
+
+      // show dealers first card 
+      document.getElementById("dealerCard0").innerHTML = dealerCards[0].value + " of " + dealerCards[0].suit
 
       if (!(playerTotal>21)) {
         dealerFinishes()
